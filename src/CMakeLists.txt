@@ -8,8 +8,8 @@ find_package(directx-headers CONFIG REQUIRED)
 
 add_library(bsatk STATIC)
 target_link_libraries(bsatk
-	PUBLIC mo2::dds-header Microsoft::DirectX-Headers
-	PRIVATE ZLIB::ZLIB lz4::lz4 Boost::thread Boost::interprocess
+	PUBLIC Microsoft::DirectX-Headers
+	PRIVATE mo2::dds-header ZLIB::ZLIB lz4::lz4 Boost::thread Boost::interprocess
 )
 
 target_sources(bsatk
