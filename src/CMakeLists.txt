@@ -9,7 +9,7 @@ find_package(mo2-dxgiformat-header CONFIG REQUIRED)
 add_library(bsatk STATIC)
 target_link_libraries(bsatk
 	PUBLIC mo2::dxgiformat-header
-	PRIVATE mo2::dds-header ZLIB::ZLIB lz4::lz4 Boost::thread Boost::interprocess
+	PRIVATE $<BUILD_INTERFACE:mo2::dds-header> ZLIB::ZLIB lz4::lz4 Boost::thread Boost::interprocess
 )
 
 target_sources(bsatk
