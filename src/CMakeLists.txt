@@ -4,11 +4,11 @@ find_package(Boost REQUIRED CONFIG COMPONENTS thread interprocess)
 find_package(ZLIB REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
 find_package(mo2-dds-header CONFIG REQUIRED)
-find_package(directx-headers CONFIG REQUIRED)
+find_package(mo2-dxgiformat-header CONFIG REQUIRED)
 
 add_library(bsatk STATIC)
 target_link_libraries(bsatk
-	PUBLIC Microsoft::DirectX-Headers
+	PUBLIC mo2::dxgiformat-header
 	PRIVATE mo2::dds-header ZLIB::ZLIB lz4::lz4 Boost::thread Boost::interprocess
 )
 

@@ -1,11 +1,11 @@
 {
   "dependencies": [
     "mo2-dds-header",
+    "mo2-dxgiformat-header",
     "zlib",
     "lz4",
     "boost-thread",
-    "boost-interprocess",
-    "directx-headers"
+    "boost-interprocess"
   ],
   "vcpkg-configuration": {
     "default-registry": {
@@ -22,9 +22,11 @@
       },
       {
         "kind": "git",
-        "repository": "https://github.com/ModOrganizer2/vcpkg-registry",
-        "baseline": "228cda39fe9d1eeed789c0ef64fd1235dab3b11e",
-        "packages": ["mo2-dds-header"]
+        "baseline": "fcd0b6c5ee2eaff6f8feafe0e4b74c5256ac6289",
+        "repository": "https://github.com/Kaedras/vcpkg-registry",
+        "packages": [
+          "mo2-*"
+        ]
       }
     ]
   }
