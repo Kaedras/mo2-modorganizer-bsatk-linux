@@ -38,6 +38,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/stat.h>
 #include <zlib.h>
 
+// DDS.h depends on dxgiformat.h but does not include it
+#include <directx/dxgiformat.h>
+
+#include <DDS.h>
+
 using std::fstream;
 
 using namespace boost::posix_time;

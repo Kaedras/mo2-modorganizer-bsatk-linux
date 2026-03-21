@@ -26,14 +26,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <queue>
 #include <vector>
 
-// DDS.h depends on dxgiformat.h but does not include it
-#include <directx/dxgiformat.h>
-
-#include <DDS.h>
-
 #include "bsafolder.h"
 #include "bsatypes.h"
 #include "errorcodes.h"
+
+// forward declarations
 namespace boost
 {
 class mutex;
@@ -42,6 +39,13 @@ namespace interprocess
   class interprocess_semaphore;
 }
 }  // namespace boost
+
+namespace DirectX
+{
+struct DDS_PIXELFORMAT;
+struct DDS_HEADER;
+struct DDS_HEADER_DXT10;
+}  // namespace DirectX
 
 namespace BSA
 {
