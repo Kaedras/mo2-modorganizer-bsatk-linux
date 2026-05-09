@@ -74,5 +74,5 @@ install(TARGETS bsatk EXPORT bsatkTargets FILE_SET HEADERS)
 install(EXPORT bsatkTargets
 	FILE mo2-bsatk-targets.cmake
 	NAMESPACE mo2::
-	DESTINATION lib/cmake/mo2-bsatk
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mo2-bsatk
 )
