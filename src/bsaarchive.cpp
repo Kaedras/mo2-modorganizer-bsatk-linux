@@ -43,6 +43,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <DDS.h>
 
+#ifndef WIN32
+#define _stricmp strcasecmp
+#endif  // WIN32
+
 using std::fstream;
 
 using namespace boost::posix_time;
@@ -159,15 +163,9 @@ Archive::Header Archive::readHeader(std::fstream& infile)
   return result;
 }
 
-EErrorCode Archive::read(const char* fileName, bool testHashes)
+EErrorCode Archive::read(const std::filesystem::path& fileName, bool testHashes)
 {
-#ifdef __unix__
-  std::string path(fileName);
-  std::ranges::replace(path, '\\', '/');
-  m_File.open(path, fstream::in | fstream::binary);
-#else
   m_File.open(fileName, fstream::in | fstream::binary);
-#endif
   if (!m_File.is_open()) {
     return ERROR_FILENOTFOUND;
   }
@@ -345,10 +343,6 @@ BSAULong Archive::countCharacters(const std::vector<std::string>& list) const
   return static_cast<BSAULong>(sum);
 }
 
-#ifndef WIN32
-#define _stricmp strcasecmp
-#endif  // WIN32
-
 static bool endsWith(const std::string& fileName, const char* extension)
 {
   size_t endLength = strlen(extension);
@@ -421,17 +415,10 @@ void Archive::writeHeader(std::fstream& outfile, BSAULong fileFlags,
   writeType<BSAULong>(outfile, fileFlags);
 }
 
-EErrorCode Archive::write(const char* fileName)
+EErrorCode Archive::write(const std::filesystem::path& filePath)
 {
   std::fstream outfile;
-#ifdef __unix__
-  std::string str(fileName);
-  std::ranges::replace(str, '\\', '/');
-  outfile.open(str, fstream::out | fstream::binary);
-#else
-  outfile.open(fileName, fstream::out | fstream::binary);
-#endif
-
+  outfile.open(filePath, fstream::out | fstream::binary);
   if (!outfile.is_open()) {
     return ERROR_ACCESSFAILED;
   }
@@ -883,14 +870,11 @@ EErrorCode Archive::extractCompressed(File::Ptr file, std::ofstream& outFile) co
   return result;
 }
 
-EErrorCode Archive::extract(File::Ptr file, const char* outputDirectory) const
+EErrorCode Archive::extract(File::Ptr file,
+                            const std::filesystem::path& outputDirectory) const
 {
-  std::string fileName = makeString("%s/%s", outputDirectory, file->getName().c_str());
-#ifdef __unix__
-  std::ranges::replace(fileName, '\\', '/');
-#endif
-  std::ofstream outputFile(fileName.c_str(),
-                           fstream::out | fstream::binary | fstream::trunc);
+  std::filesystem::path targetPath = outputDirectory / file->getName();
+  std::ofstream outputFile(targetPath, fstream::out | fstream::binary | fstream::trunc);
   if (!outputFile.is_open()) {
     return ERROR_ACCESSFAILED;
   }
@@ -1007,13 +991,7 @@ void Archive::readFiles(std::queue<FileInfo>& queue, boost::mutex& mutex,
   }
 }
 
-inline bool fileExists(const std::string& name)
-{
-  struct stat buffer;
-  return stat(name.c_str(), &buffer) != -1;
-}
-
-void Archive::extractFiles(const std::string& targetDirectory,
+void Archive::extractFiles(const std::filesystem::path& targetDirectory,
                            std::queue<FileInfo>& queue, boost::mutex& mutex,
                            boost::interprocess::interprocess_semaphore& bufferCount,
                            boost::interprocess::interprocess_semaphore& queueFree,
@@ -1037,16 +1015,12 @@ void Archive::extractFiles(const std::string& targetDirectory,
 
     DataBuffer dataBuffer = fileInfo.data;
 
-    std::string fileName = makeString("%s\\%s", targetDirectory.c_str(),
-                                      fileInfo.file->getFilePath().c_str());
-#ifdef __unix__
-    std::ranges::replace(fileName, '\\', '/');
-#endif
-    if (!overwrite && fileExists(fileName)) {
+    std::filesystem::path targetPath = targetDirectory / fileInfo.file->getFilePath();
+    if (!overwrite && exists(targetPath)) {
       continue;
     }
 
-    std::ofstream outputFile(fileName.c_str(),
+    std::ofstream outputFile(targetPath,
                              fstream::out | fstream::binary | fstream::trunc);
 
     if (!outputFile.is_open()) {
@@ -1153,21 +1127,19 @@ void Archive::extractFiles(const std::string& targetDirectory,
   }
 }
 
-void Archive::createFolders(const std::string& targetDirectory, Folder::Ptr folder)
+void Archive::createFolders(const std::filesystem::path& targetDirectory,
+                            Folder::Ptr folder)
 {
   for (std::vector<Folder::Ptr>::iterator iter = folder->m_SubFolders.begin();
        iter != folder->m_SubFolders.end(); ++iter) {
-    std::string subDirName = targetDirectory + "/" + (*iter)->getName();
-#ifdef __unix__
-    std::ranges::replace(subDirName, '\\', '/');
-#endif
-    std::filesystem::create_directories(subDirName);
-    createFolders(subDirName, *iter);
+    std::filesystem::path subDirPath = targetDirectory / (*iter)->getName();
+    std::filesystem::create_directory(subDirPath);
+    createFolders(subDirPath, *iter);
   }
 }
 
 EErrorCode Archive::extractAll(
-    const char* outputDirectory,
+    const std::filesystem::path& outputDirectory,
     const std::function<bool(int value, std::string fileName)>& progress,
     bool overwrite)
 {
@@ -1232,8 +1204,8 @@ bool Archive::compressed(const File::Ptr& file) const
   return (file->m_FileSize > 0);
 }
 
-File::Ptr Archive::createFile(const std::string& name, const std::string& sourceName,
-                              bool compressed)
+File::Ptr Archive::createFile(const std::string& name,
+                              const std::filesystem::path& sourceName, bool compressed)
 {
   return File::Ptr(
       new File(name, sourceName, nullptr, defaultCompressed() != compressed));
